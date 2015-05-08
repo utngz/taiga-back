@@ -83,6 +83,7 @@ class NeighborsSerializerMixin:
         view, request = self.context.get("view", None), self.context.get("request", None)
         if view and request:
             queryset = view.filter_queryset(view.get_queryset())
+            print(queryset)
             left, right = get_neighbors(obj, results_set=queryset)
         else:
             left = right = None

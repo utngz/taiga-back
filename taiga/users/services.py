@@ -88,3 +88,27 @@ def get_big_photo_or_gravatar_url(user):
         return get_big_photo_url(user.photo)
     else:
         return get_gravatar_url(user.email, size=settings.DEFAULT_BIG_AVATAR_SIZE)
+
+def get_stats_for_user(user):
+    """Get the user stats"""
+
+    project_ids = user.memberships.values_list("project__id", flat=True).distinct()
+    projects = project_ids.count()
+    roles = [_(r) for r in user.memberships.values_list("role__name", flat=True)]
+    roles = list(set(roles))
+    User = apps.get_model('users', 'User')
+    contacts = User.objects.filter(memberships__project__id__in=project_ids)\
+        .exclude(id=user.id)\
+        .distinct()\
+        .count()
+
+    UserStory = apps.get_model('userstories', 'UserStory')
+    closed_userstories = UserStory.objects.filter(is_closed=True, assigned_to=user).count()
+
+    project_stats = {
+        'projects': projects,
+        'roles': roles,
+        'contacts': contacts,
+        'closed_userstories': closed_userstories,
+    }
+    return project_stats
